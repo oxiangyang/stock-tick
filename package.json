@@ -1,0 +1,152 @@
+{
+  "name": "stock-tick",
+  "displayName": "Stock Tick",
+  "icon": "images/logo.png",
+  "description": "Real-time stock market in VS Code status bar. Supports A-share, HK stocks, price alarms, limit-up monitoring and more.",
+  "version": "0.0.1",
+  "publisher": "yangzw1024",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "scripts": {},
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./src/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "stock-tick.addStock",
+        "title": "添加股票"
+      },
+      {
+        "command": "stock-tick.removeStock",
+        "title": "移除股票"
+      },
+      {
+        "command": "stock-tick.clearStocks",
+        "title": "清空股票"
+      },
+      {
+        "command": "stock-tick.sortStocks",
+        "title": "排序股票"
+      },
+      {
+        "command": "stock-tick.manageStock",
+        "title": "管理股票",
+        "icon": "$(gear)"
+      },
+      {
+        "command": "stock-tick.toggleVisibility",
+        "title": "显示/隐藏状态栏"
+      },
+      {
+        "command": "stock-tick.priceAlarm",
+        "title": "价格闹钟"
+      },
+      {
+        "command": "stock-tick.refreshData",
+        "title": "刷新行情数据"
+      }
+    ],
+    "configuration": {
+      "title": "Stock Tick",
+      "properties": {
+        "stock-tick.stocks": {
+          "type": "array",
+          "default": [
+            "sh000001"
+          ],
+          "description": "股票代码列表",
+          "items": {
+            "type": "string"
+          }
+        },
+        "stock-tick.priceAlarms": {
+          "type": "array",
+          "default": [],
+          "description": "价格闹钟列表",
+          "items": {
+            "type": "object"
+          }
+        },
+        "stock-tick.maxDisplayCount": {
+          "type": "number",
+          "default": 5,
+          "description": "状态栏最大显示股票数量"
+        },
+        "stock-tick.showMiniName": {
+          "type": "boolean",
+          "default": false,
+          "description": "状态栏是否显示简称"
+        },
+        "stock-tick.stockMiniNames": {
+          "type": "object",
+          "default": {},
+          "description": "股票简称映射，key 为股票代码，value 为自定义简称，例如 {\"sh601318\": \"平安\"}",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "stock-tick.showChangeValue": {
+          "type": "boolean",
+          "default": false,
+          "description": "状态栏是否显示涨跌值"
+        },
+        "stock-tick.autoHideByMarket": {
+          "type": "boolean",
+          "default": false,
+          "description": "根据开休市时间自动显示/隐藏状态栏"
+        },
+        "stock-tick.enableLockTip": {
+          "type": "boolean",
+          "default": false,
+          "description": "是否开启封单异动通知"
+        },
+        "stock-tick.showLockCount": {
+          "type": "boolean",
+          "default": false,
+          "description": "状态栏是否显示封单数量"
+        },
+        "stock-tick.miniMode": {
+          "type": "boolean",
+          "default": false,
+          "description": "极简模式：只显示价格和涨跌幅，例如 51.08 ↗ +1.23% 或 51.08 ↘ -3.31%"
+        }
+      }
+    },
+    "keybindings": [
+      {
+        "command": "stock-tick.toggleVisibility",
+        "key": "ctrl+alt+s",
+        "mac": "cmd+alt+s",
+        "when": "editorTextFocus || !editorTextFocus"
+      }
+    ]
+  },
+  "configurationDefaults": {
+    "workbench.hover.delay": 3000
+  },
+  "dependencies": {},
+  "keywords": [
+    "看盘",
+    "stock",
+    "股票",
+    "行情",
+    "finance",
+    "A股",
+    "港股",
+    "状态栏"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:yangzw1024/stock-tick.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yangzw1024/stock-tick/issues"
+  },
+  "homepage": "https://github.com/yangzw1024/stock-tick#readme"
+}

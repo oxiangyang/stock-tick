@@ -28,6 +28,8 @@ let alarmManager;
 let refreshInterval;
 // null=自动  true=用户强制显示  false=用户强制隐藏
 let userForced = null;
+// 存储用户原始的 hover delay 全局显式值（undefined 表示用户从未显式设置）
+let _hoverDelayGlobalValue;
 
 // 获取状态栏是否可见
 const getIsVisible = () => {
@@ -36,9 +38,48 @@ const getIsVisible = () => {
 };
 
 /**
+ * 确保工作台悬停延迟为 3000ms
+ * configurationDefaults 在部分编辑器（如 Qoder）中不生效，
+ * 需通过 config.update() 显式设置以确保状态栏 tooltip 具有 3 秒延迟
+ */
+async function ensureHoverDelay() {
+  try {
+    const hoverConfig = vscode.workspace.getConfiguration("workbench");
+    // inspect 返回各层级值，globalValue 为用户在全局 settings.json 中的显式设置
+    const inspection = hoverConfig.inspect("hover.delay");
+    _hoverDelayGlobalValue = inspection.globalValue;
+
+    const currentDelay = hoverConfig.get("hover.delay");
+    if (currentDelay !== 3000) {
+      await hoverConfig.update("hover.delay", 3000, vscode.ConfigurationTarget.Global);
+    }
+  } catch (error) {
+    console.error("设置悬停延迟失败:", error);
+  }
+}
+
+/**
+ * 恢复用户原始的悬停延迟设置
+ * 扩展停用时将 workbench.hover.delay 还原为用户之前的显式值
+ * 若用户从未显式设置（_hoverDelayGlobalValue === undefined），则移除覆盖让默认值生效
+ */
+async function restoreHoverDelay() {
+  try {
+    const hoverConfig = vscode.workspace.getConfiguration("workbench");
+    await hoverConfig.update(
+      "hover.delay",
+      _hoverDelayGlobalValue,
+      vscode.ConfigurationTarget.Global,
+    );
+  } catch (error) {
+    console.error("恢复悬停延迟失败:", error);
+  }
+}
+
+/**
  * 插件激活函数
  */
-function activate(context) {
+async function activate(context) {
   console.log("看盘插件已启动");
 
   // 初始化管理器
@@ -51,6 +92,9 @@ function activate(context) {
 
   // 注册命令
   registerCommands(context);
+
+  // 确保悬停延迟为 3000ms（修复 Qoder 等编辑器中 configurationDefaults 不生效的问题）
+  await ensureHoverDelay();
 
   // 开始定时更新
   startRefreshTimer();
@@ -319,7 +363,7 @@ function startRefreshTimer() {
 /**
  * 插件停用函数
  */
-function deactivate() {
+async function deactivate() {
   if (refreshInterval) {
     clearInterval(refreshInterval);
     refreshInterval = null;
@@ -327,6 +371,8 @@ function deactivate() {
   if (statusBarManager) {
     statusBarManager.dispose();
   }
+  // 恢复用户原始的悬停延迟设置
+  await restoreHoverDelay();
 }
 
 module.exports = {

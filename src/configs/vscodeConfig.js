@@ -43,20 +43,30 @@ function getConfigValue(key) {
 }
 
 /**
- * 获取并验证股票代码列表
+ * 获取并验证股票代码列表（纯读取，不写回）
  * @returns {string[]} 验证后的代码数组
  */
 function getStocks() {
+  const codes = getConfig().get("stocks", []);
+  return codes.filter((code) => isValidStockCode(code));
+}
+
+/**
+ * 清洗非法股票代码并写回配置（仅在激活时调用一次）
+ * 将读取路径与写入副作用分离，避免高频读取触发配置写入循环
+ */
+async function sanitizeStocks() {
   const config = getConfig();
   const codes = config.get("stocks", []);
-
   const validCodes = codes.filter((code) => isValidStockCode(code));
 
   if (validCodes.length !== codes.length) {
-    config.update("stocks", validCodes, vscode.ConfigurationTarget.Global);
+    await config.update(
+      "stocks",
+      validCodes,
+      vscode.ConfigurationTarget.Global,
+    );
   }
-
-  return validCodes;
 }
 
 /**
@@ -93,6 +103,7 @@ async function saveAlarms(alarms) {
 
 module.exports = {
   getStocks,
+  sanitizeStocks,
   saveStocks,
   getMaxDisplayCount: () => getConfigValue("maxDisplayCount"),
   getShowMiniName: () => getConfigValue("showMiniName"),

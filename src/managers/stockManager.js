@@ -78,7 +78,7 @@ class StockManager {
 
     // 验证股票是否存在
     const stockInfo = await getStockList([stockCode]);
-    if (!stockInfo || !stockInfo[0].name) {
+    if (!stockInfo?.[0]?.name) {
       sendMsg("股票获取失败，请检查股票代码或名称", { type: "error" });
       return;
     }

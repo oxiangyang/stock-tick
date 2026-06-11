@@ -29,12 +29,14 @@ function buildOptions(url, extraHeaders = {}) {
 // GET 请求，返回文本
 async function get(url, extraHeaders = {}) {
   const res = await fetch(url, buildOptions(url, extraHeaders));
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.text();
 }
 
 // GET 请求，返回 GBK 解码后的字符串
 async function getGbk(url, extraHeaders = {}) {
   const res = await fetch(url, buildOptions(url, extraHeaders));
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const buf = await res.arrayBuffer();
   return new TextDecoder("gbk").decode(buf);
 }

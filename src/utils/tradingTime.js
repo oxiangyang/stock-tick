@@ -4,16 +4,25 @@
  */
 
 /**
+ * 判断给定时间是否为工作日（周一至周五）
+ * @param {Date} date
+ * @returns {boolean}
+ */
+function isWeekday(date) {
+  const day = date.getDay();
+  return day !== 0 && day !== 6;
+}
+
+/**
  * 判断当前是否为A股交易时间
  * 交易时间：工作日 9:15-11:30 和 13:00-15:00
  * @returns {boolean} 是否在交易时间内
  */
 function isTradingTime() {
   const now = new Date();
-  const day = now.getDay();
 
   // 周末不交易
-  if (day === 0 || day === 6) {
+  if (!isWeekday(now)) {
     return false;
   }
 
@@ -26,21 +35,23 @@ function isTradingTime() {
 }
 
 /**
- * 检查是否为早盘集合竞价时间（9:15-9:25）
+ * 检查是否为早盘集合竞价时间（工作日 9:15-9:25）
  * @returns {boolean}
  */
 function isMorningAuctionTime() {
   const now = new Date();
+  if (!isWeekday(now)) return false;
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
   return currentMinutes >= 555 && currentMinutes <= 565; // 9:15-9:25
 }
 
 /**
- * 检查是否为尾盘集合竞价时间（14:57-15:00）
+ * 检查是否为尾盘集合竞价时间（工作日 14:57-15:00）
  * @returns {boolean}
  */
 function isAfternoonAuctionTime() {
   const now = new Date();
+  if (!isWeekday(now)) return false;
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
   return currentMinutes >= 897 && currentMinutes <= 900; // 14:57-15:00
 }

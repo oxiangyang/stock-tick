@@ -94,6 +94,18 @@ function formatAmount(amount) {
   return Math.round(amount) + "元";
 }
 
+/**
+ * 格式化行情时间戳
+ * 将腾讯接口的 14 位时间戳转为可读格式
+ * 20260409114906 -> 2026-04-09 11:49
+ * @param {string} raw - 14 位时间戳字符串
+ * @returns {string} 格式化后的时间，长度不符时返回空串
+ */
+function formatQuoteDateTime(raw) {
+  if (typeof raw !== "string" || raw.length !== 14) return "";
+  return `${raw.slice(0, 4)}-${raw.slice(4, 6)}-${raw.slice(6, 8)} ${raw.slice(8, 10)}:${raw.slice(10, 12)}`;
+}
+
 module.exports = {
   isFund,
   getDecimals,
@@ -102,4 +114,5 @@ module.exports = {
   isHKStock,
   getLimitPercent,
   formatAmount,
+  formatQuoteDateTime,
 };

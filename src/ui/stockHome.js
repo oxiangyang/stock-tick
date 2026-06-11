@@ -60,11 +60,6 @@ class StockHomePanel {
     }
   }
 
-  /** 行业板块代码列表（缓存） */
-  static get INDUSTRY_CODE_LIST() {
-    return INDUSTRY_CODES.map((item) => item.code);
-  }
-
   /**
    * 将行业板块原始数据映射为带配置名称的结果
    */

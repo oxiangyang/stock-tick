@@ -5,7 +5,30 @@
 
 const { get, getGbk } = require("../utils/httpClient");
 const { buildTimeSlots } = require("../utils/tradingTime");
-const { isFund, getDecimals, safeNumber, isHKStock } = require("../utils/stockUtils");
+const {
+  isFund,
+  getDecimals,
+  safeNumber,
+  isHKStock,
+  formatQuoteDateTime,
+} = require("../utils/stockUtils");
+
+/**
+ * 按原始 codes 顺序合并 A 股与港股结果，过滤无效项
+ * @param {string[]} codes - 原始代码顺序
+ * @param {Array} aResults - A 股结果
+ * @param {Array} hkResults - 港股结果
+ * @returns {Array}
+ */
+function mergeByCodeOrder(codes, aResults, hkResults) {
+  return codes
+    .map(
+      (code) =>
+        aResults.find((s) => s?.code === code) ||
+        hkResults.find((s) => s?.code === code),
+    )
+    .filter(Boolean);
+}
 
 /**
  * 批量获取股票信息（自动区分A股和港股）
@@ -25,13 +48,7 @@ async function getStockList(codes, isSina = true) {
   ]);
 
   // 按原始顺序合并结果
-  return codes
-    .map(
-      (code) =>
-        aResults.find((s) => s?.code === code) ||
-        hkResults.find((s) => s?.code === code),
-    )
-    .filter(Boolean);
+  return mergeByCodeOrder(codes, aResults, hkResults);
 }
 
 /**
@@ -126,11 +143,7 @@ function parseTencentHKResponse(text, codes) {
       const changePercent = close > 0 ? ((changeValue / close) * 100).toFixed(2) : "0.00";
 
       // 20260409114906 -> 2026-04-09 11:49
-      const raw30 = fields[30] ?? "";
-      const dateTime =
-        raw30.length === 14
-          ? `${raw30.slice(0, 4)}-${raw30.slice(4, 6)}-${raw30.slice(6, 8)} ${raw30.slice(8, 10)}:${raw30.slice(10, 12)}`
-          : "";
+      const dateTime = formatQuoteDateTime(fields[30]);
 
       return {
         name,
@@ -205,11 +218,7 @@ function parseFullQuote(fields, code) {
   const dec = getDecimals(isETF);
 
   // 20260409114906 -> 2026-04-09 11:49
-  const raw = fields[30] ?? "";
-  const dateTime =
-    raw.length === 14
-      ? `${raw.slice(0, 4)}-${raw.slice(4, 6)}-${raw.slice(6, 8)} ${raw.slice(8, 10)}:${raw.slice(10, 12)}`
-      : "";
+  const dateTime = formatQuoteDateTime(fields[30]);
 
   return {
     name: fields[1] ?? "",
@@ -318,13 +327,7 @@ async function getStockQuoteList(codes) {
       hkCodes.length ? getHKStockList(hkCodes) : [],
     ]);
 
-    return codes
-      .map(
-        (code) =>
-          aResults.find((s) => s?.code === code) ||
-          hkResults.find((s) => s?.code === code),
-      )
-      .filter(Boolean);
+    return mergeByCodeOrder(codes, aResults, hkResults);
   } catch (error) {
     console.error(`获取股票详细行情失败: ${error.message}`);
     return [];

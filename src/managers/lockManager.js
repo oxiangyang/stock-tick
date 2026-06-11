@@ -39,7 +39,7 @@ function checkLockTip(stockInfos) {
     if (prev) {
       const message = getLockChangeMessage(prev, stock);
       if (!message) continue;
-      sendMsg(message, { rateLimit: true });
+      sendMsg(message, { rateLimit: true, autoHide: 5000 });
     }
     lockTipCache.set(stock.code, {
       priceType: stock.priceType,

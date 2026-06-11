@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.0.3
+
+### Features
+
+- **Lock-up order alerts now auto-dismiss after 5 seconds**: Limit-up/down lock anomaly notifications flash briefly and disappear on their own instead of piling up in the notification center. Implemented via a progress-style notification that closes when its timer resolves. Other messages (price alarms, add/remove confirmations) keep their original behavior.
+
+### Bug Fixes
+
+- **`addStock` crash on empty API response**: When the quote API returned an empty array, validating the result threw a TypeError. Now guarded with optional chaining so it surfaces a friendly "fetch failed" message instead.
+- **Config write during stock-list reads**: `getStocks()` used to write sanitized codes back to config on every (high-frequency) read, which could trigger a config-change → refresh loop. Reads are now pure; invalid codes are cleaned once on activation.
+- **Duplicate static getter**: Removed a duplicated `INDUSTRY_CODE_LIST` definition in the stock home panel.
+
+### Improvements
+
+- **HTTP status checks**: Market requests now throw on non-2xx responses instead of parsing error pages as quotes.
+- **Refresh concurrency guard**: Overlapping refreshes are skipped so slow networks don't stack up requests against the 5s timer.
+- **Auction-time weekday check**: Morning/afternoon auction helpers now also verify it's a weekday.
+- **Internal cleanup**: Extracted shared quote-timestamp formatting and code-order merge helpers to remove duplication.
+- **Tooling**: Added ESLint config and a `node:test` suite covering pure utility functions, plus `lint`/`test` npm scripts.
+
 ## v0.0.2
 
 ### Bug Fixes

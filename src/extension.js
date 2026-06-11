@@ -11,6 +11,7 @@ const LockManager = require("./managers/lockManager");
 const { sendMsg } = require("./utils/sendMsg");
 const {
   getStocks,
+  sanitizeStocks,
   getAutoHideByMarket,
   getEnableLockTip,
 } = require("./configs/vscodeConfig");
@@ -26,6 +27,8 @@ let statusBarManager;
 let stockManager;
 let alarmManager;
 let refreshInterval;
+// 刷新并发保护：上一次刷新未完成时跳过本次，避免慢网络下请求堆积
+let isRefreshing = false;
 // null=自动  true=用户强制显示  false=用户强制隐藏
 let userForced = null;
 // 存储用户原始的 hover delay 全局显式值（undefined 表示用户从未显式设置）
@@ -89,6 +92,9 @@ async function activate(context) {
 
   // 初始化状态栏
   statusBarManager.initialize();
+
+  // 清洗配置中的非法股票代码（仅激活时执行一次）
+  await sanitizeStocks();
 
   // 注册命令
   registerCommands(context);
@@ -308,29 +314,36 @@ function registerCommands(context) {
  * 数据获取与状态栏可见性无关，确保隐藏时闹钟仍能触发
  */
 async function updateDataAndCheckAlarms() {
-  const stocks = getStocks();
-  const isMorningAuction = isMorningAuctionTime();
-  const isAfternoonAuction = isAfternoonAuctionTime();
-  const stockInfos =
-    stocks.length > 0 ? await getStockList(stocks, !isMorningAuction) : [];
+  // 上一次刷新仍在进行时跳过，避免慢网络下请求堆积
+  if (isRefreshing) return;
+  isRefreshing = true;
+  try {
+    const stocks = getStocks();
+    const isMorningAuction = isMorningAuctionTime();
+    const isAfternoonAuction = isAfternoonAuctionTime();
+    const stockInfos =
+      stocks.length > 0 ? await getStockList(stocks, !isMorningAuction) : [];
 
-  for (const stock of stockInfos) {
-    const lockInfo = LockManager.calculateLockInfo(stock);
-    Object.assign(stock, lockInfo);
-  }
+    for (const stock of stockInfos) {
+      const lockInfo = LockManager.calculateLockInfo(stock);
+      Object.assign(stock, lockInfo);
+    }
 
-  if (stockInfos.length > 0) {
-    await alarmManager.checkAlarms(stockInfos);
-  }
+    if (stockInfos.length > 0) {
+      await alarmManager.checkAlarms(stockInfos);
+    }
 
-  if (!isMorningAuction && !isAfternoonAuction && getEnableLockTip()) {
-    LockManager.checkLockTip(stockInfos);
-  }
+    if (!isMorningAuction && !isAfternoonAuction && getEnableLockTip()) {
+      LockManager.checkLockTip(stockInfos);
+    }
 
-  if (getIsVisible()) {
-    statusBarManager.render(stocks, stockInfos);
-  } else {
-    statusBarManager.setHidden();
+    if (getIsVisible()) {
+      statusBarManager.render(stocks, stockInfos);
+    } else {
+      statusBarManager.setHidden();
+    }
+  } finally {
+    isRefreshing = false;
   }
 }
 

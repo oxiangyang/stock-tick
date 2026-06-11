@@ -3,12 +3,15 @@
   "displayName": "Stock Tick",
   "icon": "images/logo.png",
   "description": "Real-time stock market in VS Code status bar. Supports A-share, HK stocks, price alarms, limit-up monitoring and more.",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "publisher": "yangzw1024",
   "engines": {
     "vscode": "^1.74.0"
   },
-  "scripts": {},
+  "scripts": {
+    "lint": "eslint .",
+    "test": "node --test"
+  },
   "categories": [
     "Other"
   ],
@@ -131,6 +134,10 @@
     "workbench.hover.delay": 3000
   },
   "dependencies": {},
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "eslint": "^9.17.0"
+  },
   "keywords": [
     "看盘",
     "stock",

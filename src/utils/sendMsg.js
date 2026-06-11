@@ -30,15 +30,21 @@ function formatTime() {
  * @param {boolean} options.rateLimit - 是否限流，默认 false
  * @param {string} options.type - 消息类型: info | warning | error，默认 info
  * @param {boolean} options.showConfirm - 是否显示"知道了"按钮，默认 false
+ * @param {number} options.autoHide - 自动消失毫秒数，设置后通知到时自动关闭（仅 info 且无按钮时生效）
  * @returns {void}
  */
 function sendMsg(text, options = {}) {
-  const { rateLimit = false, type = "info", showConfirm = false } = options;
+  const {
+    rateLimit = false,
+    type = "info",
+    showConfirm = false,
+    autoHide,
+  } = options;
   const buttons = showConfirm ? ["知道了"] : [];
 
   // 不限流直接发送
   if (!rateLimit) {
-    showVscodeMessage(text, type, buttons);
+    showVscodeMessage(text, type, buttons, autoHide);
     return;
   }
 
@@ -54,7 +60,7 @@ function sendMsg(text, options = {}) {
       pendingMessages = [];
     }
     lastNotifyTime = now;
-    showVscodeMessage(finalText, type, buttons);
+    showVscodeMessage(finalText, type, buttons, autoHide);
   } else {
     // 被限流，缓存消息等下次一起发
     pendingMessages.push(`[${formatTime()}] ${text}`);
@@ -66,8 +72,22 @@ function sendMsg(text, options = {}) {
  * @param {string} msg - 消息文本
  * @param {string} type - 消息类型
  * @param {string[]} buttons - 按钮文本数组
+ * @param {number} [autoHide] - 自动消失毫秒数（仅 info 且无按钮时生效）
  */
-function showVscodeMessage(msg, type, buttons) {
+function showVscodeMessage(msg, type, buttons, autoHide) {
+  // 自动消失的提示：用进度通知，到时 resolve 后通知自动关闭
+  if (autoHide && type === "info" && buttons.length === 0) {
+    vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: msg,
+        cancellable: false,
+      },
+      () => new Promise((resolve) => setTimeout(resolve, autoHide)),
+    );
+    return;
+  }
+
   switch (type) {
     case "warning":
       vscode.window.showWarningMessage(msg, ...buttons);

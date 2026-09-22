@@ -14,6 +14,7 @@ const {
   sanitizeStocks,
   getAutoHideByMarket,
   getEnableLockTip,
+  getMaxDisplayCount,
 } = require("./configs/vscodeConfig");
 const { getStockList } = require("./services/stockService");
 const {
@@ -321,8 +322,17 @@ async function updateDataAndCheckAlarms() {
     const stocks = getStocks();
     const isMorningAuction = isMorningAuctionTime();
     const isAfternoonAuction = isAfternoonAuctionTime();
+    const isVisible = getIsVisible();
+    const enableLockTip = getEnableLockTip();
     const stockInfos =
-      stocks.length > 0 ? await getStockList(stocks, !isMorningAuction) : [];
+      stocks.length > 0
+        ? await getStockList(stocks, {
+            enableLockTip,
+            depthCodes: isVisible
+              ? new Set(stocks.slice(0, getMaxDisplayCount()))
+              : new Set(),
+          })
+        : [];
 
     for (const stock of stockInfos) {
       const lockInfo = LockManager.calculateLockInfo(stock);
@@ -333,11 +343,11 @@ async function updateDataAndCheckAlarms() {
       await alarmManager.checkAlarms(stockInfos);
     }
 
-    if (!isMorningAuction && !isAfternoonAuction && getEnableLockTip()) {
+    if (!isMorningAuction && !isAfternoonAuction && enableLockTip) {
       LockManager.checkLockTip(stockInfos);
     }
 
-    if (getIsVisible()) {
+    if (isVisible) {
       statusBarManager.render(stocks, stockInfos);
     } else {
       statusBarManager.setHidden();

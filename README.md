@@ -91,7 +91,7 @@ Search `@ext:yangzw1024.stock-tick` in VS Code Settings to see all options.
 ## FAQ
 
 **Stock search fails?**
-Make sure your network can reach Sina and Tencent market APIs, or enter the full code directly (e.g. `sh600519`, `hk00700`).
+Make sure your network can reach East Money and Tencent market APIs, or enter the full code directly (e.g. `sh600519`, `hk00700`).
 
 **Status bar too crowded?**
 Reduce `maxDisplayCount`, enable `miniMode` or `showMiniName` to compress width, or reorder stocks to show the most important ones first.

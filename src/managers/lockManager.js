@@ -15,16 +15,21 @@ function calculateLockInfo(stock) {
     return { priceType: "none", lockAmount: 0 };
   }
 
-  if (
-    (stock.buy1Price === 0 && stock.sell1Price === 0) ||
-    (stock.buy1Volume === 0 && stock.sell1Volume === 0)
-  ) {
-    return { priceType: "err", lockAmount: 0 };
-  }
   const limit = getLimitPercent(stock.code, stock.name);
   const changePercent = parseFloat(stock.changePercent);
-  const isLimitUp = changePercent >= limit - 0.1 && stock.sell1Volume === 0;
-  const isLimitDown = changePercent <= -(limit - 0.1) && stock.buy1Volume === 0;
+  const isNearLimitUp = changePercent >= limit - 0.1;
+  const isNearLimitDown = changePercent <= -(limit - 0.1);
+  if (!isNearLimitUp && !isNearLimitDown) {
+    return { priceType: "none", lockAmount: 0 };
+  }
+  const hasBuyOrder = stock.buy1Price > 0 && stock.buy1Volume > 0;
+  const hasSellOrder = stock.sell1Price > 0 && stock.sell1Volume > 0;
+  if (stock.hasDepth !== true || (!hasBuyOrder && !hasSellOrder)) {
+    return { priceType: "err", lockAmount: 0 };
+  }
+
+  const isLimitUp = isNearLimitUp && !hasSellOrder && hasBuyOrder;
+  const isLimitDown = isNearLimitDown && !hasBuyOrder && hasSellOrder;
   const volume = isLimitUp ? stock.buy1Volume || 0 : stock.sell1Volume || 0;
   const price = isLimitUp ? stock.buy1Price || 0 : stock.sell1Price || 0;
   const lockAmount = volume * 100 * price;

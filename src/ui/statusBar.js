@@ -200,7 +200,8 @@ class StatusBarManager {
 
     // 买卖盘（有数据时显示）
     const hasBuySell =
-      stock.buy1Price > 0 || stock.sell1Price > 0;
+      stock.hasDepth === true &&
+      (stock.buy1Price > 0 || stock.sell1Price > 0);
     if (hasBuySell) {
       const buy1 = stock.buy1Price > 0
         ? `${stock.buy1Price} × ${stock.buy1Volume}手`

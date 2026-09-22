@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## v0.0.4
+
+### Features
+
+- Replaced Sina quote and stock-search APIs with East Money for A-share, Beijing Stock Exchange and Hong Kong search support.
+- Added Tencent quote fallback with per-symbol recovery, failure counters and a 30-second circuit breaker after three consecutive primary-source failures.
+- Added on-demand order-book snapshots for displayed stocks, limit monitoring and lock-up alerts while hiding unavailable depth data.
+
+### Improvements
+
+- Split East Money and Tencent integrations into dedicated provider modules.
+- Added a 3-second timeout for East Money quote, depth and search requests.
+- Hardened Tencent response mapping and empty order-book validation.
+
 ## v0.0.3
 
 ### Features
